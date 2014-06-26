@@ -1,5 +1,10 @@
+cmake_minimum_required(VERSION 2.8)
 project(reedsolomon)
 
-add_executable(reedsolomon main.cpp)
-
-install(TARGETS reedsolomon RUNTIME DESTINATION bin)
+ADD_DEFINITIONS(-std=c++11)
+include_directories("/usr/include/python2.7")
+aux_source_directory(src SRC)
+set(SRC_ALL ${SRC})
+add_executable(reedsolomon_exe2 ${SRC_ALL} example.c )
+ADD_LIBRARY (reedsolomon SHARED ${SRC_ALL} pymain.cpp)
+set_target_properties(reedsolomon PROPERTIES PREFIX "")
