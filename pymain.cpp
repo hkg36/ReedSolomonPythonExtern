@@ -7,53 +7,28 @@
 
 static PyObject* PyRSEncode(PyObject* Self, PyObject* args)
 {
-  PyObject * listObj=NULL;
-  if (! PyArg_ParseTuple( args, "O!", &PyList_Type, &listObj)) return NULL;
-  size_t lsize= PyList_Size(listObj);
-  std::vector<unsigned char> srcdata;
-  for(size_t i=0;i<lsize;i++)
-  {
-    PyObject* cell = PyList_GetItem(listObj, i);
-    long int one=PyInt_AsLong(cell);
-    if (one == -1 && PyErr_Occurred())
-      return NULL;
-    srcdata.push_back(one);
-  }
-  std::vector<unsigned char> result(srcdata.size()+NPAR);
-  encode_data(srcdata.data(), srcdata.size(), result.data());
-  //=RSEncode(srcdata,temp_int);
-  PyObject* list_result= PyList_New(result.size());
-  for(size_t i=0;i<result.size();i++)
-    PyList_SetItem(list_result,i,PyInt_FromLong(result[i]));
-  return list_result;
+  unsigned char * listObj=NULL;
+  int size;
+  if (! PyArg_ParseTuple( args, "s#", &listObj,&size)) return NULL;
+  std::vector<unsigned char> result(size+NPAR);
+  encode_data(listObj,size, result.data());
+  return PyString_FromStringAndSize((const char*)result.data(),result.size());
 }
 
 static PyObject* PyRSDecode(PyObject* Self, PyObject* args)
 {
-  PyObject * listObj=NULL;
-  if (! PyArg_ParseTuple( args, "O!", &PyList_Type, &listObj)) return NULL;
-  size_t lsize= PyList_Size(listObj);
-  std::vector<unsigned char> srcdata;
-  for(size_t i=0;i<lsize;i++)
-  {
-    PyObject* cell = PyList_GetItem(listObj, i);
-    long int one=PyInt_AsLong(cell);
-    if (one == -1 && PyErr_Occurred())
-      return NULL;
-    srcdata.push_back(one);
-  }
-  decode_data(srcdata.data(),srcdata.size());
+  unsigned char * listObj=NULL;
+  int size;
+  if (! PyArg_ParseTuple( args, "s#", &listObj,&size)) return NULL;
+  decode_data(listObj,size);
   if (check_syndrome () != 0) {
-    if(0==correct_errors_erasures (srcdata.data(),srcdata.size(),0,NULL))
+    if(0==correct_errors_erasures (listObj,size,0,NULL))
     {
       PyErr_SetString( PyExc_BufferError,"can not correct,too much error byte");
       return NULL;
     }
   }
-  PyObject* list_result= PyList_New(srcdata.size()-NPAR);
-  for(size_t i=0,count=srcdata.size()-NPAR;i<count;i++)
-    PyList_SetItem(list_result,i,PyInt_FromLong(srcdata[i]));
-  return list_result;
+  return PyString_FromStringAndSize((const char*)listObj,size-NPAR);
 }
 
 static PyMethodDef root_methods[] = {
@@ -67,4 +42,6 @@ PyMODINIT_FUNC initreedsolomon() {
   //RSinit();
     PyObject *m;
     m = Py_InitModule3("reedsolomon", root_methods, "reedsolomon module.");
+    PyObject *npar=PyInt_FromLong(NPAR);
+    PyObject_SetAttrString(m,"NPAR",npar);
 }

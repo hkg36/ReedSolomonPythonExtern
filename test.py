@@ -1,14 +1,16 @@
+import sys
+sys.path.append('build')
+
 import reedsolomon
 import random
+print reedsolomon.NPAR
 while True:
     tMesg = ""
     for i in xrange(30):
         tMesg+=random.choice('1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ ')
     tSize = 6
-    tdata=[ord(one) for one in tMesg]
-    result1= reedsolomon.RSEncode(tdata)
-    print result1
-    result=result1[:]
+    result= reedsolomon.RSEncode(tMesg)
+    reslist=list(result)
     errorcount=random.randint(1,3)
     errseted=set()
     for i in xrange(errorcount):
@@ -18,10 +20,11 @@ while True:
                 errseted.add(pos)
                 break
         print pos,',',
-        result[pos]=0
+        reslist[pos]='\x00'
     print ''
-    print result
-    result2= reedsolomon.RSDecode(result)
+    result1=''.join(reslist)
+    print result1
+    result2= reedsolomon.RSDecode(result1)
     print result2
     for i in xrange(len(result2)):
         if result2[i]!=result1[i]:
