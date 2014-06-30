@@ -5,13 +5,15 @@ import reedsolomon
 import random
 print reedsolomon.NPAR
 while True:
+    print "<====================================>"
     tMesg = ""
-    for i in xrange(30):
+    for i in xrange(50):
         tMesg+=random.choice('1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ ')
     tSize = 6
+    print tMesg
     result= reedsolomon.RSEncode(tMesg)
     reslist=list(result)
-    errorcount=random.randint(1,3)
+    errorcount=random.randint(1,reedsolomon.NPAR/2)
     errseted=set()
     for i in xrange(errorcount):
         while True:
@@ -20,7 +22,7 @@ while True:
                 errseted.add(pos)
                 break
         print pos,',',
-        reslist[pos]='\x00'
+        reslist[pos]=chr(random.randint(0,255))
     print ''
     result1=''.join(reslist)
     print result1
